@@ -13,6 +13,9 @@ from datetime import timedelta
 SLACK_CHANNEL = os.environ['slackChannel']
    
 HOOK_URL = os.environ['hookUrl']
+ADMIN_URL = 'https://admin.petpot.co.kr'
+WEB_URL = 'https://petpot.co.kr'
+MOBILE_URL = 'https://m.petpot.co.kr'   
    
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -26,31 +29,39 @@ def lambda_handler(event, context):
     alarm_description = message['AlarmDescription']
     new_state = message['NewStateValue']
     reason = message['NewStateReason']
-    change_time = message['StateChangeTime'].split("+")
+    change_time = message['StateChangeTime'].split(".")
 
     #KST 시간 변환
-    kst_time = datetime.strptime(change_time[0], '%Y-%m-%dT%H:%M:%S.%f') - timedelta(hours=-9)
+    kst_time = datetime.strptime(change_time[0], '%Y-%m-%dT%H:%M:%S') - timedelta(hours=-9)
 
-#    slack_message = {
-#        'channel': SLACK_CHANNEL,
-#        'text': "%s state is now %s: %s" % (alarm_name, new_state, reason)
-#    }
+    color = "#30db3f" if new_state.find("OK") >= 0 else "#eb4034"
+    alarm_name = alarm_name + " UP" if new_state.find("OK") >= 0 else alarm_name + " DOWN"
+    alarm_description = alarm_description + " up" if new_state.find("OK") >= 0 else alarm_description + " down"
+    site_url = WEB_URL
 
-    color = "#30db3f" if alarm_name.find("off") >= 0 else "#eb4034"
+    if alarm_name.find("BO") >= 0:
+        site_url = ADMIN_URL
+    elif alarm_name.find("MO") >= 0:
+        site_url = MOBILE_URL
 
     slack_message = {
         "channel": SLACK_CHANNEL,
+        "text": alarm_name,
         "attachments": [{
             "color": color,
             "blocks": [{
                 "type": "section",
                 "fields": [{
                     "type": "mrkdwn",
-                    "text": "*Task:*\\n" + alarm_description
+                    "text": "*Task:*\n" + alarm_description
                 },
                 {
                     "type": "mrkdwn",
-                    "text": "*경보 시간:*\\n" + str(kst_time)
+                    "text": "*Create Time:*\n" + str(kst_time)
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": "*URL:*\n" + site_url
                 }]
             }]
         }],
@@ -58,7 +69,7 @@ def lambda_handler(event, context):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": alarm_name
+                "text": "*" + alarm_name + "*"
             }
         },
         {
