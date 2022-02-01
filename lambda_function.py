@@ -13,9 +13,13 @@ from datetime import timedelta
 SLACK_CHANNEL = os.environ['slackChannel']
    
 HOOK_URL = os.environ['hookUrl']
-ADMIN_URL = 'https://admin.petpot.co.kr'
-WEB_URL = 'https://petpot.co.kr'
-MOBILE_URL = 'https://m.petpot.co.kr'   
+
+# 어드민 사이트 - BO
+ADMIN_URL = 'https://127.0.0.1:8380'
+# 웹 사이트 - FO
+WEB_URL = 'https://127.0.0.1:8180'
+# 모바일 사이트 - MO
+MOBILE_URL = 'https://127.0.0.1:8280'   
    
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
